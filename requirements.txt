@@ -3,3 +3,7 @@ google_auth_oauthlib
 google-api-python-client
 python-dotenv
 pandas
+prefect
+sqlalchemy
+psycopg2
+ipykernel
