@@ -122,12 +122,18 @@ celerybeat.pid
 *.sage.py
 
 # data
-data/raw/
-data/processed/
-data/final/
+data/raw/*
+data/staging/*
+data/outputs/*
+
+!data/raw/.gitkeep
+!data/staging/.gitkeep
+!data/outputs/.gitkeep
+
 
 # Environments
-secrets/
+secrets/*
+!secrets/.gitkeep
 .env
 .venv
 env/

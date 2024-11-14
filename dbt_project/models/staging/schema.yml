@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: addresses_new
+    description: "The addresses raw"
+    columns:
+      - name: SUPPLIER_ID
+        description: "The primary key for this table"
+        data_tests:
+          - unique
+          - not_null
+
+sources:
+  - name: my_source
+    database: arthurspool
+    schema: dbo
+    tables:
+      - name: MyExternalTable

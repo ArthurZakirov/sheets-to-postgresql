@@ -22,3 +22,6 @@ def authenticate():
         with open(TOKEN_PATH, "w") as token_file:
             token_file.write(creds.to_json())
     return creds
+
+if __name__ == "__main__":
+    authenticate()

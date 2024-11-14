@@ -1,6 +1,4 @@
-from prefect.deployments import Deployment
 from prefect.server.schemas.schedules import IntervalSchedule
-from flows.etl_flow import etl_flow
 from datetime import timedelta
 from prefect import flow
 import os
@@ -9,7 +7,7 @@ import dotenv
 dotenv.load_dotenv()
 
 SOURCE_REPO = os.getenv("SOURCE_REPO")
-CSV_DIR = os.getenv("CSV_DIR")
+RAW_DIR = os.getenv("RAW_DIR")
 
 if __name__ == "__main__":
     pulled_flow = flow.from_source(

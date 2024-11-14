@@ -1,38 +1,65 @@
 import os
-import pandas as pd
+import requests
+from io import BytesIO
 from prefect import task, flow
-from src.utils.google_sheets_to_csv import download_all_sheets_as_csv
-from src.utils.database import load_to_postgresql
+from googleapiclient.discovery import build
+from dotenv import load_dotenv
+from src.utils.auth import authenticate
 
-CSV_DIR = os.getenv("CSV_DIR")
-
-@task
-def extract_csv_files(input_dir: str) -> list:
-    csv_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.csv')]
-    return csv_files
+load_dotenv()
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+RAW_DIR = os.getenv("RAW_DIR")
 
 @task
-def transform_data(file_path: str) -> pd.DataFrame:
-    data = pd.read_csv(file_path)
-    # Add any transformation logic here (e.g., clean up, data manipulation)
-    data["processed"] = True  # Example transformation
-    return data
+def extract(spreadsheet_id):
+    """Extracts all sheets from the Google Sheets document and returns them as in-memory CSV files."""
+    creds = authenticate()
+    service = build("sheets", "v4", credentials=creds)
+    spreadsheet_metadata = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    sheets = spreadsheet_metadata.get("sheets", [])
+
+    extracted_sheets = []
+
+    for sheet in sheets:
+        sheet_id = sheet["properties"]["sheetId"]
+        sheet_title = sheet["properties"]["title"]
+        url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv&gid={sheet_id}"
+        headers = {"Authorization": f"Bearer {creds.token}"}
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            csv_data = BytesIO(response.content)
+            extracted_sheets.append((sheet_title, csv_data))
+            print(f"Sheet '{sheet_title}' extracted successfully")
+        else:
+            print(f"Error downloading sheet '{sheet_title}':", response.status_code, response.text)
+
+    return extracted_sheets
+
 
 @task
-def load_data_to_db(data: pd.DataFrame, table_name: str):
-    load_to_postgresql(data, table_name)
+def load(extracted_sheets, RAW_DIR):
+    """Loads the in-memory CSV files to the specified directory."""
+    
+    # Create the staging directory if it doesn't exist
+    if not os.path.exists(RAW_DIR):
+        os.makedirs(RAW_DIR)
+    
+    for sheet_title, csv_data in extracted_sheets:
+        output_filename = os.path.join(RAW_DIR, f"{sheet_title}.csv")
+        with open(output_filename, 'wb') as f:
+            f.write(csv_data.getvalue())
+        print(f"Sheet '{sheet_title}' saved to {output_filename}")
+
+@task
+def transform():
+    pass
 
 @flow
 def etl_flow():
-    # Extract phase
-    download_all_sheets_as_csv()
-    csv_files = extract_csv_files(CSV_DIR)
-    
-    # Transform and load phase
-    for file_path in csv_files:
-        sheet_name = os.path.splitext(os.path.basename(file_path))[0]  # use filename as table name
-        data = transform_data(file_path)
-        load_data_to_db(data, sheet_name)
+    extracted_sheets = extract(SPREADSHEET_ID)
+    load(extracted_sheets, RAW_DIR)
+    transform()
 
 if __name__ == "__main__":
-    etl_flow()  # Run the flow locally
+    etl_flow()  

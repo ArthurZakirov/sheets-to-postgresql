@@ -5,5 +5,7 @@ python-dotenv
 pandas
 prefect
 sqlalchemy
-psycopg2
+psycopg2-binary
 ipykernel
+dbt-synapse=1.8.1
+dbt-core=1.8.1
