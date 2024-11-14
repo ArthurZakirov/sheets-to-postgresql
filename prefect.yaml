@@ -1,0 +1,28 @@
+env:
+  SOURCE_REPO: ${SOURCE_REPO}    # Referencing environment variables
+  STAGING_DIR: ${STAGING_DIR}
+  GOOGLE_CREDENTIALS_PATH: ${GOOGLE_CREDENTIALS_PATH}
+  GOOGLE_TOKEN_PATH: ${GOOGLE_TOKEN_PATH}
+  
+deployments:
+- name: sheets-to-azure
+  version:
+  tags: []
+  concurrency_limit:
+  description:
+  entrypoint: src/flows/etl_flow.py:etl_flow
+  parameters: {}
+  work_pool:
+    name: default-work-pool
+    work_queue_name:
+    job_variables: {}
+  enforce_parameter_schema: true
+  schedules:
+  - interval: 3600.0
+    anchor_date: '2024-11-14T08:06:15.479321+00:00'
+    timezone: UTC
+    active: true
+  pull:
+  - prefect.deployments.steps.git_clone:
+      repository: https://github.com/ArthurZakirov/sheets-to-postgresql.git
+      branch: main
