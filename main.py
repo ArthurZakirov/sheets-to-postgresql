@@ -7,7 +7,7 @@ import dotenv
 dotenv.load_dotenv()
 
 SOURCE_REPO = os.getenv("SOURCE_REPO")
-RAW_DIR = os.getenv("RAW_DIR")
+STAGING_DIR = os.getenv("STAGING_DIR")
 
 if __name__ == "__main__":
     pulled_flow = flow.from_source(

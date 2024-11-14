@@ -8,7 +8,7 @@ from src.utils.auth import authenticate
 
 load_dotenv()
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-RAW_DIR = os.getenv("RAW_DIR")
+STAGING_DIR = os.getenv("STAGING_DIR")
 
 @task
 def extract(spreadsheet_id):
@@ -38,15 +38,15 @@ def extract(spreadsheet_id):
 
 
 @task
-def load(extracted_sheets, RAW_DIR):
+def load(extracted_sheets, STAGING_DIR):
     """Loads the in-memory CSV files to the specified directory."""
     
     # Create the staging directory if it doesn't exist
-    if not os.path.exists(RAW_DIR):
-        os.makedirs(RAW_DIR)
+    if not os.path.exists(STAGING_DIR):
+        os.makedirs(STAGING_DIR)
     
     for sheet_title, csv_data in extracted_sheets:
-        output_filename = os.path.join(RAW_DIR, f"{sheet_title}.csv")
+        output_filename = os.path.join(STAGING_DIR, f"{sheet_title}.csv")
         with open(output_filename, 'wb') as f:
             f.write(csv_data.getvalue())
         print(f"Sheet '{sheet_title}' saved to {output_filename}")
@@ -58,7 +58,7 @@ def transform():
 @flow
 def etl_flow():
     extracted_sheets = extract(SPREADSHEET_ID)
-    load(extracted_sheets, RAW_DIR)
+    load(extracted_sheets, STAGING_DIR)
     transform()
 
 if __name__ == "__main__":

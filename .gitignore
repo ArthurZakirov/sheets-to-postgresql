@@ -122,13 +122,13 @@ celerybeat.pid
 *.sage.py
 
 # data
-data/raw/*
+data/intermediate/*
 data/staging/*
-data/outputs/*
+data/marts/*
 
-!data/raw/.gitkeep
+!data/intermediate/.gitkeep
 !data/staging/.gitkeep
-!data/outputs/.gitkeep
+!data/marts/.gitkeep
 
 
 # Environments
